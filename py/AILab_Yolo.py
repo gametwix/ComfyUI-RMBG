@@ -28,7 +28,7 @@ class AILab_Yolo:
         return {
             "required": {
                 "images": ("IMAGE",),
-                "model_path": ("STRING", {"default": "", "tooltip": "Absolute path to a local YOLO .pt weight file on the ComfyUI server."}),
+                "model_path": ("STRING", {"default": "", "tooltip": "Local YOLO .pt weight file: absolute path or relative to /home/comfy/ComfyUI/models/checkpoints/."}),
                 "mask_count": (MASK_COUNT_CHOICES, {"default": "all", "tooltip": "Merge this many detections. 'all' merges everything (or just the selected index when specified)."}),
             },
             "optional": {

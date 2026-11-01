@@ -4,7 +4,7 @@ A sophisticated ComfyUI custom node engineered for advanced image background rem
 
 ## Local model files
 
-Every model-loading node requires an absolute path to a weight **file** on the
+Every model-loading node requires a path to a weight **file** on the
 machine running ComfyUI. Models are no longer downloaded automatically or searched
 for in standard model folders. Paths can contain spaces; weight files can have
 custom names, with the format expected by the selected architecture.
@@ -15,7 +15,13 @@ custom names, with the format expected by the selected architecture.
 | Segment / SegmentV2 | `sam_model_path`, `dino_model_path`, `bert_model_path` |
 | SAM2Segment | `sam2_model_path`, `dino_model_path`, `bert_model_path` |
 
-For example, set `model_path` to `/srv/models/background/my-weights.safetensors`.
+Absolute paths are used as provided. Relative paths are resolved under
+`/home/comfy/ComfyUI/models/checkpoints/`, independently of the working directory.
+For example, `hf/1038lab/BiRefNet/revision/BiRefNet-general.safetensors` resolves to
+`/home/comfy/ComfyUI/models/checkpoints/hf/1038lab/BiRefNet/revision/BiRefNet-general.safetensors`.
+Leading/trailing whitespace is removed and `~` is expanded before resolving paths.
+
+You can also set `model_path` to `/srv/models/background/my-weights.safetensors`.
 On Windows, use an absolute Windows path such as `D:\models\my-weights.safetensors`.
 An empty value, a directory or a missing file produces an error. Select the matching
 model architecture/variant as before. YOLO's old model dropdown is replaced by
@@ -290,7 +296,8 @@ install requirment.txt in the ComfyUI-RMBG folder
 ### 4. Download model weights
 
 Download the desired checkpoint, store it anywhere accessible to the ComfyUI
-server, and enter its absolute file path in the node. Download sources:
+server, and enter its absolute path in the node, or a path relative to
+`/home/comfy/ComfyUI/models/checkpoints/`. Download sources:
 
 - [1038lab/RMBG-2.0](https://huggingface.co/1038lab/RMBG-2.0)
 - [briaai/VRMBG-3.0](https://huggingface.co/briaai/VRMBG-3.0)
