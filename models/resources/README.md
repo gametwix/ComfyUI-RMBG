@@ -1,7 +1,8 @@
 # Bundled model resources
 
 These directories contain configuration, tokenizer vocabulary and model source
-files only. Model weights are supplied through absolute file paths in the nodes.
+files only. Model weights are supplied through file paths in the nodes: absolute
+paths or paths relative to `/home/comfy/ComfyUI/models/checkpoints/`.
 Existing SAM2 YAML configs and SAM3 vocabulary remain in their original locations
 under `models/sam2` and `models/sam3`.
 

@@ -77,7 +77,7 @@ class ModelPathsTest(unittest.TestCase):
         self.weight.write_bytes(b"test weights")
 
     def test_validate_paths_before_loading(self):
-        for value in (None, "", "  ", "relative/model.pt"):
+        for value in (None, "", "  "):
             with self.subTest(value=value), self.assertRaisesRegex(ValueError, "model_path"):
                 paths.model_file(value)
         for value in (str(self.root), str(self.root / "missing.pt")):
@@ -89,6 +89,25 @@ class ModelPathsTest(unittest.TestCase):
         self.assertEqual(paths.model_file(str(alias)), str(self.weight.resolve()))
         with patch.dict(os.environ, {"HOME": str(self.root)}):
             self.assertEqual(paths.model_file("~/" + self.weight.name), str(self.weight.resolve()))
+
+    def test_relative_paths_use_checkpoint_root(self):
+        self.assertEqual(paths.CHECKPOINT_ROOT, Path("/home/comfy/ComfyUI/models/checkpoints"))
+        relative = Path("hf/1038lab/BiRefNet/revision/BiRefNet-general.safetensors")
+        weight = self.root / relative
+        weight.parent.mkdir(parents=True)
+        weight.write_bytes(b"weights")
+        alias = self.root / "alias.safetensors"
+        alias.symlink_to(weight)
+        with patch.object(paths, "CHECKPOINT_ROOT", self.root):
+            self.assertEqual(paths.model_file(str(relative)), str(weight.resolve()))
+            self.assertEqual(paths.model_file(f"  {self.weight.name}  "), str(self.weight.resolve()))
+            self.assertEqual(paths.model_file("alias.safetensors"), str(weight.resolve()))
+            self.assertEqual(paths.model_file(str(weight)), str(weight.resolve()))
+            for value in ("missing.pt", str(relative.parent)):
+                with self.subTest(value=value), self.assertRaises(FileNotFoundError) as error:
+                    paths.model_file(value, "sam_model_path")
+                self.assertIn("sam_model_path", str(error.exception))
+                self.assertIn(str(self.root / value), str(error.exception))
 
     def test_model_and_temporal_cache_invalidation(self):
         @paths.local_model_inputs("model_path")
@@ -114,6 +133,8 @@ class ModelPathsTest(unittest.TestCase):
         first = node.run(model_path=str(self.weight), Hair=True)
         self.assertEqual(node.asserted_inputs, {"Hair": True})
         self.assertIs(node.run(model_path=str(self.weight)), first)
+        with patch.object(paths, "CHECKPOINT_ROOT", self.root):
+            self.assertIs(node.run(model_path=self.weight.name), first)
         second_path = self.root / "second.pt"
         second_path.write_bytes(b"second")
         self.assertIsNot(node.run(model_path=str(second_path)), first)

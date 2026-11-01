@@ -12,16 +12,17 @@ import tempfile
 import threading
 
 RESOURCE_ROOT = Path(__file__).resolve().parents[1] / "models" / "resources"
+CHECKPOINT_ROOT = Path("/home/comfy/ComfyUI/models/checkpoints")
 _bundles = {}
 _bundle_lock = threading.RLock()
 
 
 def model_file(value, field="model_path"):
     if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{field}: enter an absolute path to a local model weight file.")
+        raise ValueError(f"{field}: enter a local model weight file path (absolute or relative to {CHECKPOINT_ROOT}).")
     path = Path(value.strip()).expanduser()
     if not path.is_absolute():
-        raise ValueError(f"{field}: an absolute file path is required: {value!r}")
+        path = CHECKPOINT_ROOT / path
     if not path.is_file():
         raise FileNotFoundError(f"{field}: model file does not exist or is a directory: {path}")
     return str(path.resolve())
@@ -113,7 +114,7 @@ def local_model_inputs(*fields):
             for field in fields:
                 required[field] = ("STRING", {
                     "default": "",
-                    "tooltip": f"Absolute path to the local {field.removesuffix('_path')} weight file on the ComfyUI server. No automatic download.",
+                    "tooltip": f"Local {field.removesuffix('_path')} weight file: absolute path or relative to {CHECKPOINT_ROOT}. No automatic download.",
                 })
             return schema
 
